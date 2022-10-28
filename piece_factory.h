@@ -7,8 +7,8 @@
 class PieceFactory
 {
 public:
-    static Piece* createRandom(const QPoint& pos);
-    static Piece* create(ShapeType shtype, Rotation rottype, const QPoint& pos);
+    static Piece* createRandom(QGraphicsScene& scene, const QPoint& pos);
+    static Piece* create(QGraphicsScene& scene, ShapeType shtype, Rotation rottype, const QPoint& pos);
 };
 
 #endif // PIECEFACTORY_H

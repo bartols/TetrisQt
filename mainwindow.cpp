@@ -8,8 +8,9 @@
 #include <QEvent>
 #include <QDebug>
 
-#define DEBUG_POS
-
+#ifdef QT_DEBUG
+//#define DEBUG_POS
+#endif
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -18,11 +19,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->graphicsView->setGeometry(0,30,610,420);
 
-    _scene = new Board(this);
+    _board = new Board(this);
 #ifdef DEBUG_POS
-    _scene->installEventFilter(this);
+    _board->installEventFilter(this);
 #endif
-    ui->graphicsView->setScene(_scene);
+    ui->graphicsView->setScene(_board);
 }
 
 MainWindow::~MainWindow()
@@ -38,13 +39,13 @@ void MainWindow::on_pushButton_2_clicked()
 // start
 void MainWindow::on_pushButton_clicked()
 {
-    _scene->start();
-    _scene->setFocus();
+    _board->start();
+    _board->setFocus();
 }
 
 void MainWindow::on_pushButton_3_clicked()
 {
-    _scene->stop();
+    _board->stop();
 }
 
 bool MainWindow::eventFilter(QObject *target, QEvent *event)
@@ -57,3 +58,12 @@ bool MainWindow::eventFilter(QObject *target, QEvent *event)
     }
     return QMainWindow::eventFilter(target, event);
 }
+
+
+void MainWindow::on_pushButton_4_clicked()
+{
+#ifdef QT_DEBUG
+    _board->test("Fade");
+#endif
+}
+

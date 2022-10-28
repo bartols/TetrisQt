@@ -2,6 +2,7 @@
 #define PIECE_H
 
 #include <QPoint>
+#include <array>
 
 //#include <QGraphicsItemGroup>
 enum class ShapeType : int {
@@ -13,6 +14,9 @@ enum class ShapeType : int {
     LShape,
     TShape
 };
+#ifdef QT_DEBUG
+const char * to_string(ShapeType type);
+#endif
 
 enum class Rotation : int {
     rot_0,
@@ -20,6 +24,9 @@ enum class Rotation : int {
     rot_180,
     rot_270,
 };
+#ifdef QT_DEBUG
+const char * to_string(Rotation rot);
+#endif
 
 class QGraphicsRectItem;
 class QGraphicsScene;
@@ -28,6 +35,8 @@ class Piece
 {
 public:
     enum Action {
+        no_action,
+        move_up,
         move_down,
         move_left,
         move_right,
@@ -36,18 +45,29 @@ public:
     };
 
     Piece() = delete;
-    Piece(ShapeType type, Rotation rotation, const QPoint &pos);
-    Piece(Piece&& other) noexcept;
+    Piece(const Piece&) = delete;
+    Piece(QGraphicsScene& scene, ShapeType type, Rotation rotation, const QPoint &pos);
 
-    bool action(Action action);
+    ShapeType type() const      { return _type; }
+    Rotation rotation() const   { return _rotation; }
 
-    void add(QGraphicsScene& scene);
+    // move/rotate piece
+    bool action(Action action, bool check_collines = true);
+
+    // collide with something
+    bool isColliding();
+
+    // copy elements pointers, no deep copy
+    std::array<QGraphicsRectItem *,4> copy_elements() const {
+        return _elements;
+    }
 
 private:
     ShapeType _type;
     Rotation _rotation;
-    QGraphicsRectItem * _elements[4] = {};
+    std::array<QGraphicsRectItem *,4> _elements = {};
     QPoint _position;
+    Action _last_action = no_action;
     //QGraphicsItemGroup _group;
 
     // redraw blocks regarding to rotation, type and point

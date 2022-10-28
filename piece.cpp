@@ -38,7 +38,7 @@ const char * to_string(ShapeType type)
     case ShapeType::SShape:         return "SShape";
     case ShapeType::ZShape:         return "ZShape";
     case ShapeType::LShape:         return "LShape";
-    case ShapeType::TShape:          return "TShapw";
+    case ShapeType::TShape:         return "TShape";
     }
     return "???";
 }
@@ -96,7 +96,7 @@ QPoint tetromini[7][4][4] = {
         // 90
         { {BLOCK_SIZE, BLOCK_SIZE}, {0, BLOCK_SIZE}, {0, 0}, {-BLOCK_SIZE, 0} },
         // 180
-        { {BLOCK_SIZE, 0}, {BLOCK_SIZE, BLOCK_SIZE}, {0, BLOCK_SIZE}, {0, BLOCK_SIZE} },
+        { {BLOCK_SIZE, 0}, {BLOCK_SIZE, BLOCK_SIZE}, {0, BLOCK_SIZE}, {0, BLOCK_SIZE*2} },
         // 270
         { {BLOCK_SIZE, BLOCK_SIZE}, {0, BLOCK_SIZE}, {0, 0}, {-BLOCK_SIZE, 0} },
     },
@@ -124,82 +124,110 @@ QPoint tetromini[7][4][4] = {
     }
 };
 
-
-Piece::Piece(Piece &&other) noexcept
-{
-    std::swap(_elements[0], other._elements[0]);
-    std::swap(_elements[1], other._elements[1]);
-    std::swap(_elements[2], other._elements[2]);
-    std::swap(_elements[3], other._elements[3]);
-    std::swap(_type, other._type);
-    std::swap(_rotation, other._rotation);
-}
-
-Piece::Piece(ShapeType t, Rotation r, const QPoint &pos)
+Piece::Piece(QGraphicsScene& scene, ShapeType t, Rotation r, const QPoint &pos)
     :_type(t), _rotation(r), _position(pos)
 {
 #ifdef QT_DEBUG
     qDebug() << "New Piece " << to_string(_type) << to_string(_rotation);
 #endif
 
-    _elements[0] = new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM);
-    _elements[1] = new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM);
-    _elements[2] = new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM);
-    _elements[3] = new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM);
+    _elements = { new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM),
+                  new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM),
+                  new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM),
+                  new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM) };
 
     redraw();
 
+//    while(isColliding())
+//    {
+//    }
+
 #ifdef QT_DEBUG
-    qDebug() << "1" << _elements[0]->pos();
-    qDebug() << "2" << _elements[1]->pos();
-    qDebug() << "3" << _elements[2]->pos();
-    qDebug() << "4" << _elements[3]->pos();
+    if(isColliding())
+    {
+        qDebug() << "ATTENTION colling on born";
+    }
 #endif
+
+
+    std::for_each(std::begin(_elements), std::end(_elements), [&scene](auto* elem){
+        scene.addItem(elem);
+     });
+
+//#ifdef QT_DEBUG
+//    qDebug() << "1" << _elements[0]->pos();
+//    qDebug() << "2" << _elements[1]->pos();
+//    qDebug() << "3" << _elements[2]->pos();
+//    qDebug() << "4" << _elements[3]->pos();
+//#endif
 }
 
-bool Piece::action(Action action)
+bool Piece::action(Action act, bool check_collines)
 {
-    if(action == move_down)
+    _last_action = act;
+
+    if(act == move_down)
     {
         _position += QPoint(0, BLOCK_SIZE);
-        std::for_each( std::begin(_elements), std::end(_elements), [](auto* elem){
-            elem->moveBy(0,BLOCK_SIZE);
-        });
     }
-    else if(action == move_left)
+    else if(act == move_up)
+    {
+        _position += QPoint(0, -BLOCK_SIZE);
+    }
+    else if(act == move_left)
     {
         _position += QPoint(-BLOCK_SIZE, 0);
-        std::for_each( std::begin(_elements), std::end(_elements), [](auto* elem){
-            elem->moveBy(-BLOCK_SIZE, 0);
-        });
     }
-    else if(action == move_right)
+    else if(act == move_right)
     {
         _position += QPoint(BLOCK_SIZE, 0);
-        std::for_each( std::begin(_elements), std::end(_elements), [](auto* elem){
-            elem->moveBy(BLOCK_SIZE, 0);
-        });
     }
-    else if(action == rotate_left)
+    else if(act == rotate_left)
     {
         _rotation = rotate(-1);
-        redraw();
     }
-    else if(action == rotate_rigth)
+    else if(act == rotate_rigth)
     {
         _rotation = rotate(1);
-        redraw();
     }
 
+    // redraw pieces
+    redraw();
+
+    if( !check_collines)
+        return true;
+
+    // if collide
+    if( isColliding() )
+    {
+#ifdef QT_DEBUG
+        //qDebug() << "Collision revelead";
+#endif
+        // todo a smarter way ?
+        auto counter_move = _last_action == no_action ? move_down :
+                            _last_action == move_down ? move_up :
+                            _last_action == move_left ? move_right :
+                            _last_action == move_right ? move_left :
+                            _last_action == rotate_left ? rotate_rigth :
+                            _last_action == rotate_rigth ? rotate_left : no_action;
+        action(counter_move, false);
+        return false;
+    }
     return true;
 }
 
-void Piece::add(QGraphicsScene &scene)
+bool Piece::isColliding()
 {
-    scene.addItem(_elements[0]);
-    scene.addItem(_elements[1]);
-    scene.addItem(_elements[2]);
-    scene.addItem(_elements[3]);
+    for(const auto* elem : _elements)
+    {
+        assert(elem != nullptr);
+        if(! elem->collidingItems(Qt::IntersectsItemBoundingRect).isEmpty())
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // redraw blocks regarding to rotation, type and point

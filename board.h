@@ -5,8 +5,7 @@
 #include <QTimer>
 
 #include "tetris_defs.h"
-
-class Piece;
+#include "piece.h"
 
 // Main Platform Scene
 class Board : public QGraphicsScene
@@ -14,11 +13,14 @@ class Board : public QGraphicsScene
     Q_OBJECT
 public:
     Board(QObject *parent);
+    ~Board();
 
     void start();
     void stop();
 
-    void keyPressEvent(QKeyEvent * keyEvent);
+#ifdef QT_DEBUG
+    void test(const QString& message);
+#endif
 
 private slots:
     void update();
@@ -30,9 +32,13 @@ private:
 
     QTimer _timer;
 
-    QGraphicsItem * m_tiles[NUM_H_BLOCK][NUM_W_BLOCK] = {};
+    QGraphicsItem * m_tiles[NUM_W_BLOCK][NUM_H_BLOCK] = {};
     Piece * _current_piece = nullptr;
 
+    void keyPressEvent(QKeyEvent * keyEvent);
+    void newPiece();
+    void applyAction(Piece::Action act);
+    void fadeOut(QGraphicsItem * item);
 };
 
 #endif // BOARD_H
