@@ -26,6 +26,7 @@ private slots:
     void update();
 
 private:
+    QGraphicsLineItem * upBorder;
     QGraphicsLineItem * leftBorder;
     QGraphicsLineItem * rigthBorder;
     QGraphicsLineItem * bottomBorder;

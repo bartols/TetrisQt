@@ -9,15 +9,20 @@
 #include <QTime>
 #include <QThread>
 #include <QString>
+#include <QMessageBox>
 
 #ifdef QT_DEBUG
    #include <QDebug>
-    //#define DEBUG_DONT_MOVE
+   // #define DEBUG_DONT_MOVE
 #endif
 
 Board::Board(QObject *parent)
     :QGraphicsScene(parent)
 {
+    upBorder = new QGraphicsLineItem;
+    upBorder->setLine(BOARD_ORIG_X,-10,400,-10);
+    this->addItem(upBorder);
+
     leftBorder = new QGraphicsLineItem;
     leftBorder->setLine(198,-10,198,400);
     this->addItem(leftBorder);
@@ -56,7 +61,7 @@ void Board::test(const QString &message)
 {
     if(message == "Fade")
     {
-        auto elements = _current_piece->copy_elements();
+        auto elements = _current_piece->move_elements();
         for(auto* element : elements)
         {
             fadeOut(element);
@@ -134,7 +139,7 @@ void Board::applyAction(Piece::Action act)
     }
 
     // piece cannot move anymore, fill tiles struct
-    auto elements = _current_piece->copy_elements();
+    auto elements = _current_piece->move_elements();
 #ifdef _DEBUG
 //    qDebug() << "Take" << to_string(_current_piece->type()) << to_string(_current_piece->rotation());
 #endif
@@ -143,8 +148,8 @@ void Board::applyAction(Piece::Action act)
         int x = (element->pos().x() - BOARD_ORIG_X) / 20;
         int y = element->pos().y() / 20;
 #ifdef _DEBUG
-        qDebug() << element->pos();
-        qDebug() << x << y;
+//        qDebug() << element->pos();
+//        qDebug() << x << y;
 #endif
         assert(x<NUM_W_BLOCK);
         assert(y<NUM_H_BLOCK);
@@ -157,15 +162,15 @@ void Board::applyAction(Piece::Action act)
     // check if any row full (if a row is all empty we could stop)
     //
 #ifdef _DEBUG
-    for(int y=0; y < NUM_H_BLOCK; ++y)
-    {
-        QString str_row;
-        for(int x=0; x<NUM_W_BLOCK; ++x)
-        {
-            str_row += (m_tiles[x][y] == nullptr) ? "[ ]" : "[X]";
-        }
-        qDebug() << str_row;
-    }
+//    for(int y=0; y < NUM_H_BLOCK; ++y)
+//    {
+//        QString str_row;
+//        for(int x=0; x<NUM_W_BLOCK; ++x)
+//        {
+//            str_row += (m_tiles[x][y] == nullptr) ? "[ ]" : "[X]";
+//        }
+//        qDebug() << str_row;
+//    }
 #endif
     auto checkRows = [&]() -> int {
         for(int y=NUM_H_BLOCK-1; y >= 0; --y)
@@ -195,8 +200,6 @@ void Board::applyAction(Piece::Action act)
         for(int x=0; x<NUM_W_BLOCK; ++x)
         {
             fadeOut(m_tiles[x][row]);
-            //removeItem( m_tiles[x][row] );
-            //delete m_tiles[x][row];
             m_tiles[x][row] = nullptr;
         }
 
@@ -259,7 +262,46 @@ void Board::update()
 void Board::newPiece()
 {
     _current_piece = PieceFactory::createRandom(*this, {280, 0});
-    //_current_piece = PieceFactory::create(*this, ShapeType::LShape, Rotation::rot_0, {280, 0});
+
+    //_current_piece = PieceFactory::create(*this, ShapeType::MirroredLShape, Rotation::rot_180, {280, 0});
+    if( _current_piece->isColliding() )
+    {
+#ifdef QT_DEBUG
+        qDebug() << "New Piece colliding";
+#endif
+        _current_piece->action(Piece::move_down, false);
+    }
+
+    // if still collinding game over
+    if( _current_piece->isColliding() )
+    {
+#ifdef QT_DEBUG
+        qDebug() << "GameOver";
+#endif
+        _timer.stop();
+
+        QMessageBox msgBox;
+        msgBox.setText("GAME OVER");
+        msgBox.exec();
+
+        for(int y=0; y < NUM_H_BLOCK; ++y)
+        {
+            for(int x=0; x<NUM_W_BLOCK; ++x)
+            {
+                if(m_tiles[x][y] != nullptr)
+                {
+                    removeItem(m_tiles[x][y]);
+                    delete m_tiles[x][y];
+                    m_tiles[x][y] = nullptr;
+                }
+            }
+        }
+
+        delete _current_piece;
+        _current_piece = nullptr;
+
+        QTimer::singleShot(500, [this](){
+            newPiece();
+        });
+    }
 }
-
-

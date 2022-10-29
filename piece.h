@@ -47,6 +47,7 @@ public:
     Piece() = delete;
     Piece(const Piece&) = delete;
     Piece(QGraphicsScene& scene, ShapeType type, Rotation rotation, const QPoint &pos);
+    ~Piece();
 
     ShapeType type() const      { return _type; }
     Rotation rotation() const   { return _rotation; }
@@ -57,12 +58,11 @@ public:
     // collide with something
     bool isColliding();
 
-    // copy elements pointers, no deep copy
-    std::array<QGraphicsRectItem *,4> copy_elements() const {
-        return _elements;
-    }
+    // move elements pointers
+    std::array<QGraphicsRectItem *,4> move_elements();
 
 private:
+    QGraphicsScene& _scene;
     ShapeType _type;
     Rotation _rotation;
     std::array<QGraphicsRectItem *,4> _elements = {};

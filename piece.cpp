@@ -125,7 +125,7 @@ QPoint tetromini[7][4][4] = {
 };
 
 Piece::Piece(QGraphicsScene& scene, ShapeType t, Rotation r, const QPoint &pos)
-    :_type(t), _rotation(r), _position(pos)
+    :_scene(scene), _type(t), _rotation(r), _position(pos)
 {
 #ifdef QT_DEBUG
     qDebug() << "New Piece " << to_string(_type) << to_string(_rotation);
@@ -138,20 +138,8 @@ Piece::Piece(QGraphicsScene& scene, ShapeType t, Rotation r, const QPoint &pos)
 
     redraw();
 
-//    while(isColliding())
-//    {
-//    }
-
-#ifdef QT_DEBUG
-    if(isColliding())
-    {
-        qDebug() << "ATTENTION colling on born";
-    }
-#endif
-
-
-    std::for_each(std::begin(_elements), std::end(_elements), [&scene](auto* elem){
-        scene.addItem(elem);
+    std::for_each(std::begin(_elements), std::end(_elements), [this](auto* elem){
+        _scene.addItem(elem);
      });
 
 //#ifdef QT_DEBUG
@@ -159,7 +147,18 @@ Piece::Piece(QGraphicsScene& scene, ShapeType t, Rotation r, const QPoint &pos)
 //    qDebug() << "2" << _elements[1]->pos();
 //    qDebug() << "3" << _elements[2]->pos();
 //    qDebug() << "4" << _elements[3]->pos();
-//#endif
+    //#endif
+}
+
+Piece::~Piece()
+{
+    std::for_each(std::begin(_elements), std::end(_elements), [this](auto* elem){
+        if( elem == nullptr)
+            return;
+
+        _scene.removeItem(elem);
+        delete elem;
+     });
 }
 
 bool Piece::action(Action act, bool check_collines)
@@ -201,7 +200,7 @@ bool Piece::action(Action act, bool check_collines)
     if( isColliding() )
     {
 #ifdef QT_DEBUG
-        //qDebug() << "Collision revelead";
+       // qDebug() << "Collision revelead";
 #endif
         // todo a smarter way ?
         auto counter_move = _last_action == no_action ? move_down :
@@ -228,6 +227,13 @@ bool Piece::isColliding()
     }
 
     return false;
+}
+
+std::array<QGraphicsRectItem *,4> Piece::move_elements()
+{
+    std::array<QGraphicsRectItem *,4> res{};
+    std::swap(_elements, res);
+    return res;
 }
 
 // redraw blocks regarding to rotation, type and point
