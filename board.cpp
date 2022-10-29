@@ -37,6 +37,14 @@ Board::Board(QObject *parent)
 
     this->setSceneRect(0,0,580,410);
 
+    QGraphicsTextItem *text = this->addText("Left Arrow  - Move Left\n"
+                                            "Right Arrow - Move Right\n"
+                                            "Down Arrow  - Move Down\n\n"
+                                            "a key - rotate left\n"
+                                            "d key - rotate right\n"
+                                            "space - fall");
+    text->setPos(2, 20);
+
     connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 
     newPiece();

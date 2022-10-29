@@ -4,7 +4,7 @@
 #include <QPoint>
 #include <array>
 
-//#include <QGraphicsItemGroup>
+// shape type
 enum class ShapeType : int {
     SquareShape,
     LineShape,
@@ -18,6 +18,7 @@ enum class ShapeType : int {
 const char * to_string(ShapeType type);
 #endif
 
+// rotation
 enum class Rotation : int {
     rot_0,
     rot_90,
@@ -31,6 +32,7 @@ const char * to_string(Rotation rot);
 class QGraphicsRectItem;
 class QGraphicsScene;
 
+// a tetris piece
 class Piece
 {
 public:
@@ -73,7 +75,6 @@ private:
     std::array<QGraphicsRectItem *,4> _elements = {};
     QPoint _position;
     Action _last_action = no_action;
-    //QGraphicsItemGroup _group;
 
     // redraw blocks regarding to rotation, type and point
     void redraw();

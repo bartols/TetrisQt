@@ -9,7 +9,7 @@
 #include <QDebug>
 
 #ifdef QT_DEBUG
-//#define DEBUG_POS
+#define DEBUG_POS
 #endif
 
 MainWindow::MainWindow(QWidget *parent)
@@ -17,7 +17,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->graphicsView->setGeometry(0,30,610,420);
+    //ui->graphicsView->setGeometry(0,20,610,420);
+    ui->graphicsView->setGeometry(20,20,610,480);
 
     _board = new Board(this);
 #ifdef DEBUG_POS
