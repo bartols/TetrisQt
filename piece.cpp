@@ -2,10 +2,15 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
+#include <QGraphicsPixmapItem>
+#include <QPixmap>
+#include <QDir>
 
 #include "tetris_defs.h"
 #include <algorithm>
 #include <type_traits>
+
+QPixmap * Piece::_tiles = nullptr;
 
 // cast enum to underling type in constexpr
 template <typename E>
@@ -131,10 +136,21 @@ Piece::Piece(QGraphicsScene& scene, ShapeType t, Rotation r, const QPoint &pos)
     qDebug() << "New Piece " << to_string(_type) << to_string(_rotation);
 #endif
 
-    _elements = { new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM),
-                  new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM),
-                  new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM),
-                  new QGraphicsRectItem(0, 0, BLOCK_DIM, BLOCK_DIM) };
+    qDebug() << QDir::currentPath();
+
+    if(_tiles == nullptr)
+    {
+        _tiles = new QPixmap();
+        if( ! _tiles->load(":/images/tiles.png") )
+        {
+            qDebug() << "Failed to load: " << ":/images/tiles.png";
+        }
+    }
+
+    _elements = { new QGraphicsPixmapItem(_tiles->copy( to_underlying(_type)*BLOCK_DIM, 0, BLOCK_DIM, BLOCK_DIM)),
+                  new QGraphicsPixmapItem(_tiles->copy( to_underlying(_type)*BLOCK_DIM, 0, BLOCK_DIM, BLOCK_DIM)),
+                  new QGraphicsPixmapItem(_tiles->copy( to_underlying(_type)*BLOCK_DIM, 0, BLOCK_DIM, BLOCK_DIM)),
+                  new QGraphicsPixmapItem(_tiles->copy( to_underlying(_type)*BLOCK_DIM, 0, BLOCK_DIM, BLOCK_DIM)) };
 
     redraw();
 
@@ -206,9 +222,6 @@ bool Piece::action(Action act, bool check_collines)
     // if collide
     if( isColliding() )
     {
-#ifdef QT_DEBUG
-       // qDebug() << "Collision revelead";
-#endif
         // todo a smarter way ?
         auto counter_move = _last_action == no_action ? move_down :
                             _last_action == move_down ? move_up :
@@ -236,9 +249,9 @@ bool Piece::isColliding()
     return false;
 }
 
-std::array<QGraphicsRectItem *,4> Piece::move_elements()
+std::array<QGraphicsPixmapItem *,4> Piece::move_elements()
 {
-    std::array<QGraphicsRectItem *,4> res{};
+    std::array<QGraphicsPixmapItem *,4> res{};
     std::swap(_elements, res);
     return res;
 }

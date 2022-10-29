@@ -32,7 +32,7 @@ Board::Board(QObject *parent)
     this->addItem(rigthBorder);
 
     bottomBorder = new QGraphicsLineItem;
-    bottomBorder->setLine(BOARD_ORIG_X,400,400,400);
+    bottomBorder->setLine(BOARD_ORIG_X,400,BOARD_ORIG_X+BOARD_ORIG_WIDTH,400);
     this->addItem(bottomBorder);
 
     this->setSceneRect(0,0,580,410);
@@ -153,8 +153,8 @@ void Board::applyAction(Piece::Action act)
 #endif
     for(auto* element : elements)
     {
-        int x = (element->pos().x() - BOARD_ORIG_X) / 20;
-        int y = element->pos().y() / 20;
+        int x = (element->pos().x() - BOARD_ORIG_X) / BLOCK_SIZE;
+        int y = element->pos().y() / BLOCK_SIZE;
 #ifdef _DEBUG
 //        qDebug() << element->pos();
 //        qDebug() << x << y;
@@ -237,7 +237,7 @@ void Board::applyAction(Piece::Action act)
     newPiece();
 }
 
-void Board::fadeOut(QGraphicsItem *item)
+void Board::fadeOut(QGraphicsPixmapItem *item)
 {
     QGraphicsOpacityEffect *effect = new QGraphicsOpacityEffect(this);
     item->setGraphicsEffect(effect);

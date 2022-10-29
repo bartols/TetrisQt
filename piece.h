@@ -31,6 +31,8 @@ const char * to_string(Rotation rot);
 
 class QGraphicsRectItem;
 class QGraphicsScene;
+class QGraphicsPixmapItem;
+class QPixmap;
 
 // a tetris piece
 class Piece
@@ -66,15 +68,16 @@ public:
     bool isColliding();
 
     // move elements pointers
-    std::array<QGraphicsRectItem *,4> move_elements();
+    std::array<QGraphicsPixmapItem *,4> move_elements();
 
 private:
     QGraphicsScene& _scene;
     ShapeType _type;
     Rotation _rotation;
-    std::array<QGraphicsRectItem *,4> _elements = {};
+    std::array<QGraphicsPixmapItem *,4> _elements = {};
     QPoint _position;
     Action _last_action = no_action;
+    static QPixmap * _tiles;
 
     // redraw blocks regarding to rotation, type and point
     void redraw();
