@@ -35,6 +35,7 @@ private:
 
     QGraphicsItem * m_tiles[NUM_W_BLOCK][NUM_H_BLOCK] = {};
     Piece * _current_piece = nullptr;
+    Piece * _next_piece = nullptr;
 
     void keyPressEvent(QKeyEvent * keyEvent);
     void newPiece();

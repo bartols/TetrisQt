@@ -158,7 +158,14 @@ Piece::~Piece()
 
         _scene.removeItem(elem);
         delete elem;
-     });
+    });
+}
+
+// set position
+void Piece::set_pos(const QPoint &pos)
+{
+    _position = pos;
+    redraw();
 }
 
 bool Piece::action(Action act, bool check_collines)

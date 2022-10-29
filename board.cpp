@@ -261,9 +261,18 @@ void Board::update()
 
 void Board::newPiece()
 {
-    _current_piece = PieceFactory::createRandom(*this, {280, 0});
+    if(_next_piece == nullptr)
+    {
+        _next_piece = PieceFactory::createRandom(*this, {480, 0});
+        _current_piece = PieceFactory::createRandom(*this, {280, 0});
+    }
+    else
+    {
+        _current_piece = _next_piece;
+        _current_piece->set_pos({280, 0});
+        _next_piece = PieceFactory::createRandom(*this, {480, 0});
+    }
 
-    //_current_piece = PieceFactory::create(*this, ShapeType::MirroredLShape, Rotation::rot_180, {280, 0});
     if( _current_piece->isColliding() )
     {
 #ifdef QT_DEBUG
@@ -299,6 +308,8 @@ void Board::newPiece()
 
         delete _current_piece;
         _current_piece = nullptr;
+        delete _next_piece;
+        _next_piece = nullptr;
 
         QTimer::singleShot(500, [this](){
             newPiece();

@@ -49,8 +49,13 @@ public:
     Piece(QGraphicsScene& scene, ShapeType type, Rotation rotation, const QPoint &pos);
     ~Piece();
 
+    // shape type
     ShapeType type() const      { return _type; }
+    // rotation
     Rotation rotation() const   { return _rotation; }
+
+    // set position
+    void set_pos(const QPoint &pos);
 
     // move/rotate piece
     bool action(Action action, bool check_collines = true);
